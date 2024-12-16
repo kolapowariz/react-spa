@@ -4,33 +4,37 @@ import NewPost from "./NewPost"
 import Post from "./Post"
 import classes from "./PostsList.module.css"
 
-function PostsList() {
-  const [enteredValue, setEnteredValue] = useState("")
-  const [enteredAuthor, setEnteredAuthor] = useState("")
-  const [modalIsVisible, setModalIsVisible] = useState(true)
+interface PostData {
+  author: string,
+  body: string
+}
+function PostsList({ isPosting, onStopPosting }: { isPosting: boolean, onStopPosting: () => void }) {
+  const [posts, setPosts] = useState<PostData[]>([])
 
-  function hideModalHandler() {
-    setModalIsVisible(false)
+  function addPostHandler(postData: PostData) {
+    setPosts(existingPosts => [postData, ...existingPosts])
   }
 
-  function bodyChangeHandler(event: React.ChangeEvent<HTMLTextAreaElement>) {
-    setEnteredValue(event.target.value)
-  }
-  function authorChangeHandler(event: React.ChangeEvent<HTMLInputElement>) {
-    setEnteredAuthor(event.target.value)
-  }
 
   return (
     <>
-      {modalIsVisible && (
-        <Modal onClose={hideModalHandler}>
-          <NewPost onBodychange={bodyChangeHandler} onAuthorChange={authorChangeHandler} />
+      {isPosting && (
+        <Modal onClose={onStopPosting}>
+          <NewPost onCancel={onStopPosting} onAddPost={addPostHandler} />
         </Modal>
       )}
-      <ul className={classes.posts}>
-        <Post author={enteredAuthor} body={enteredValue} />
-        <Post author="Wariz" body="React is good" />
-      </ul>
+      {posts.length > 0 && (
+        <ul className={classes.posts}>
+          {posts.map((post) => (
+            <Post key={crypto.randomUUID()} author={post.author} body={post.body} />
+          ))}
+        </ul>
+      )}
+      {posts.length === 0 && (
+        <div style={{textAlign: 'center', color: 'white'}}>
+          <h2>There are no posts yet.</h2>
+          <p>Start adding some!</p>
+        </div>)}
     </>
   )
 }
